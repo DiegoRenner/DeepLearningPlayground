@@ -220,18 +220,18 @@ network_properties = {
     "activation_function": ["Tanh", "ReLU", "Sigmoid"]
 }
 network_properties_debug = {
-    "hidden_layers": [1],
-    "neurons": [1],
+    "hidden_layers": [2],
+    "neurons": [5],
     "regularization_exp": [2],
     "regularization_param": [0],
     "batch_size": [n_samples],
-    "epochs": [10],
+    "epochs": [2500],
     "optimizer": ["ADAM"],
-    "init_weight_seed": [567,122,231],
-    "activation_function": ["Tanh"]
+    "init_weight_seed": [134],
+    "activation_function": ["Sigmoid"]
 }
 
-settings = list(itertools.product(*network_properties.values()))
+settings = list(itertools.product(*network_properties_debug.values()))
 
 i = 0
 

@@ -9,6 +9,31 @@ import numpy as np
 import itertools
 import matplotlib.pyplot as plt
 
+fname = os.path.join("Task3/TrainingData.txt")
+values = np.loadtxt(fname, skiprows=1, delimiter=",")
+
+mean1 = np.mean(values[:,1])
+mean2 = np.mean(values[:,2])
+max1 = np.max(values[:,1])
+max2 = np.max(values[:,2])
+values[:,1] = (values[:,1])/max1
+values[:,2] = (values[:,2])/max2
+#print(max(values[:,1]), max(values[:,2]))
+#print(values.shape)
+n_meas = values.shape[0]
+sample_size = 50
+n_samples = n_meas - sample_size
+x = np.ndarray((n_samples,2*sample_size))
+y = np.ndarray((n_samples,2))
+for i in np.arange(0,n_samples):
+    x[i,:] = values[i:i+sample_size,1:3].reshape(1,2*sample_size)
+    y[i] = values[i+sample_size,1:3].reshape(1,2)
+
+perm = np.random.permutation(n_samples)
+x = torch.from_numpy(x[perm,:]).float()
+y = torch.from_numpy(y[perm,:]).float()
+batch_size = n_samples
+training_set = DataLoader(torch.utils.data.TensorDataset(x, y), batch_size=batch_size, shuffle=True)
 
 class NeuralNet(nn.Module):
 
@@ -179,20 +204,41 @@ def run_configuration(conf_dict, x, y):
     relative_error_val = torch.mean((y_val_pred - y_val) ** 2) / torch.mean(y_val ** 2)
     print("Relative Validation Error: ", relative_error_val.detach().numpy() ** 0.5 * 100, "%")
 
-    fname = os.path.join("Task2/TestingData.txt")
-    output_dimension = 1
-    test_data = np.loadtxt(fname, delimiter=" ")
-    prediction = np.ndarray((test_data.shape[0], test_data.shape[1]+output_dimension))
+    fname = os.path.join("Task3/TestingData.txt")
+    test_data = np.loadtxt(fname, skiprows=1, delimiter=",")
+    test_data = test_data.reshape(test_data.shape[0], 1)
     input_dim = test_data.shape[1]
+    output_dimension = 2
+    prediction = np.ndarray((test_data.shape[0], input_dim+output_dimension))
     prediction[:,0:input_dim] = test_data
     prediction = torch.from_numpy(prediction)
+    fname = os.path.join("Task3/TrainingData.txt")
+    test_data_base = np.loadtxt(fname, skiprows=1, delimiter=",")
+    test_data_base[:,1] /=max1
+    test_data_base[:,2] /=max2
+    base_len = 50
+    input = np.ndarray((base_len+test_data.shape[0], 2))
+    input[0:base_len,:] = test_data_base[-base_len:,1:3]
+    input = input[0:base_len,:].reshape(2*base_len,1).transpose()
+    input = torch.from_numpy(input)
     for i in np.arange(0,test_data.shape[0]):
-        prediction[i,input_dim:input_dim+output_dimension] = my_network(prediction[i,0:input_dim].float())
+        prediction[i,input_dim:input_dim+output_dimension] = my_network(input.float())
+        input = np.ndarray((base_len + test_data.shape[0], 2))
+        input[0:base_len, :] = test_data_base[-base_len:, 1:3]
+        input[base_len:base_len+i+1,:] = prediction[0:i+1,input_dim:input_dim+output_dimension].detach().numpy()
+        if i == test_data.shape[0]-1:
+            figure = plt.figure()
+            plt.plot(input[:,0])
+            plt.plot(input[:,1])
+            plt.show()
+
+        input = input[i+1:base_len+i+1, :].reshape(2 * base_len, 1).transpose()
+        input = torch.from_numpy(input)
     prediction = prediction.detach().numpy()
-    fname = os.path.join("Task2/SubTask2.txt")
-    np.savetxt(fname, prediction[:,input_dim])
-
-
+    fname = os.path.join("Task3/SubTask3.txt")
+    prediction[:,1] = prediction[:,1]*max1
+    prediction[:,2] = prediction[:,2]*max2
+    np.savetxt(fname, prediction, header="t,tf0,ts0",delimiter=",")
 
     return relative_error_train.item(), relative_error_val.item()
 
@@ -201,39 +247,16 @@ def run_configuration(conf_dict, x, y):
 sampling_seed = 78
 torch.manual_seed(sampling_seed)
 
-fname = os.path.join("Task2/TrainingData_1601.txt")
-values_data = np.loadtxt(fname, delimiter=" ")
-fname = os.path.join("Task2/samples_sobol.txt")
-values_points = np.loadtxt(fname, delimiter=" ")
-
-#transformations_data = list()
-#for i in np.arange(0,9):
-#    values_data[i,:] = (values_data[i,:])/np.max(values_data[i,:])
-#    transformations_data = (np.mean(values_data[i,:]), np.max(values_data[i,:]))
-#
-#transformations_points = list()
-#for i in np.arange(0,8):
-#    values_points[i,:] = (values_points[i,:])/np.max(values_points[i,:])
-#    transformations_points = (np.mean(values_points[i,:]), np.max(values_points[i,:]))
-y = torch.from_numpy(values_data[:,8]).reshape((values_data.shape[0],1)).float()
-#Tf0 = values[:,1]
-#Ts0 = values[:,2]
-x = torch.from_numpy(values_points[0:values_data.shape[0],:]).float()
-n_samples = x.shape[0]
-batch_size = n_samples
-training_set = DataLoader(torch.utils.data.TensorDataset(x, y), batch_size=batch_size, shuffle=True)
-
-
 network_properties_final = {
-    "hidden_layers": [2],
-    "neurons": [5],
+    "hidden_layers": [8],
+    "neurons": [10],
     "regularization_exp": [2],
     "regularization_param": [0],
     "batch_size": [n_samples],
-    "epochs": [2500],
+    "epochs": [5000],
     "optimizer": ["LBFGS"],
-    "init_weight_seed": [134],
-    "activation_function": ["Sigmoid"]
+    "init_weight_seed": [34],
+    "activation_function": ["Tanh"]
 }
 
 settings = list(itertools.product(*network_properties_final.values()))
