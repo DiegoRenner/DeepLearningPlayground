@@ -5,9 +5,7 @@ import torch.optim as optim
 import torch.utils
 import torch.utils.data
 from torch.utils.data import DataLoader
-import matplotlib.pyplot as plt
 import numpy as np
-import matplotlib as mpl
 import itertools
 
 
