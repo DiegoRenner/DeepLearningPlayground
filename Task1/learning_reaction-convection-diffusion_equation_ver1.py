@@ -137,10 +137,10 @@ def run_configuration(conf_dict, x, y):
     validation_size = int(20 * x.shape[0] / 100)
     training_size = x.shape[0] - validation_size
     x_train = x[:training_size, :]
-    y_train = y[:training_size]
+    y_train = y[:training_size, :]
 
     x_val = x[training_size:, :]
-    y_val = y[training_size:]
+    y_val = y[training_size:, :]
 
     training_set = DataLoader(torch.utils.data.TensorDataset(x_train, y_train), batch_size=batch_size, shuffle=True)
 
@@ -185,28 +185,30 @@ def run_configuration(conf_dict, x, y):
 # Random Seed for dataset generation
 sampling_seed = 78
 torch.manual_seed(sampling_seed)
-fname = os.path.join("Task2/TrainingData_1601.txt")
-values_data = np.loadtxt(fname, delimiter=" ")
-fname = os.path.join("Task2/samples_sobol.txt")
-values_points = np.loadtxt(fname, delimiter=" ")
 
-#transformations_data = list()
-#for i in np.arange(0,9):
-#    values_data[i,:] = (values_data[i,:])/np.max(values_data[i,:])
-#    transformations_data = (np.mean(values_data[i,:]), np.max(values_data[i,:]))
-#
-#transformations_points = list()
-#for i in np.arange(0,8):
-#    values_points[i,:] = (values_points[i,:])/np.max(values_points[i,:])
-#    transformations_points = (np.mean(values_points[i,:]), np.max(values_points[i,:]))
-y = torch.from_numpy(values_data[:,8]).reshape((values_data.shape[0],1)).float()
+fname = os.path.join("TrainingData.txt")
+values = np.loadtxt(fname, skiprows=1, delimiter=",")
+np.random.shuffle(values)
+mean0 = np.mean(values[:,0])
+mean1 = np.mean(values[:,1])
+mean2 = np.mean(values[:,2])
+max0 = np.max(values[:,0])
+max1 = np.max(values[:,1])
+max2 = np.max(values[:,2])
+min0 = np.min(values[:,0])
+min1 = np.min(values[:,1])
+min2 = np.min(values[:,2])
+values[:,0] = (values[:,0])/max0
+values[:,1] = (values[:,1])/max1
+values[:,2] = (values[:,2])/max2
+
+t = torch.from_numpy(values[:,0].transpose()).reshape((265, 1)).float()
 #Tf0 = values[:,1]
 #Ts0 = values[:,2]
-x = torch.from_numpy(values_points[0:values_data.shape[0],:]).float()
-n_samples = x.shape[0]
+T0 = torch.from_numpy(values[:,1:3]).float()
+n_samples = t.shape[0]
 batch_size = n_samples
-training_set = DataLoader(torch.utils.data.TensorDataset(x, y), batch_size=batch_size, shuffle=True)
-
+training_set = DataLoader(torch.utils.data.TensorDataset(t, T0), batch_size=batch_size, shuffle=True)
 
 network_properties = {
     "hidden_layers": [2, 4, 8],
@@ -220,18 +222,18 @@ network_properties = {
     "activation_function": ["Tanh", "ReLU", "Sigmoid"]
 }
 network_properties_debug = {
-    "hidden_layers": [2],
-    "neurons": [5],
+    "hidden_layers": [1],
+    "neurons": [1],
     "regularization_exp": [2],
     "regularization_param": [0],
     "batch_size": [n_samples],
-    "epochs": [2500],
+    "epochs": [10],
     "optimizer": ["ADAM"],
-    "init_weight_seed": [134],
-    "activation_function": ["Sigmoid"]
+    "init_weight_seed": [567,122,231],
+    "activation_function": ["Tanh"]
 }
 
-settings = list(itertools.product(*network_properties_debug.values()))
+settings = list(itertools.product(*network_properties.values()))
 
 i = 0
 
@@ -252,7 +254,7 @@ for set_num, setup in enumerate(settings):
         "activation_function": setup[8]
     }
 
-    relative_error_train_, relative_error_val_= run_configuration(setup_properties, x, y)
+    relative_error_train_, relative_error_val_= run_configuration(setup_properties, t, T0)
     train_err_conf.append(relative_error_train_)
     val_err_conf.append(relative_error_val_)
 

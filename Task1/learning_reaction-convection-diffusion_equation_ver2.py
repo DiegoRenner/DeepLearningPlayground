@@ -7,6 +7,34 @@ import torch.utils.data
 from torch.utils.data import DataLoader
 import numpy as np
 import itertools
+import matplotlib.pyplot as plt
+
+fname = os.path.join("TrainingData.txt")
+values = np.loadtxt(fname, skiprows=1, delimiter=",")
+figure = plt.figure()
+plt.plot(values[:,0],values[:,1])
+plt.plot(values[:,0],values[:,2])
+np.random.shuffle(values)
+mean0 = np.mean(values[:,0])
+mean1 = np.mean(values[:,1])
+mean2 = np.mean(values[:,2])
+max0 = np.max(values[:,0])
+max1 = np.max(values[:,1])
+max2 = np.max(values[:,2])
+min0 = np.min(values[:,0])
+min1 = np.min(values[:,1])
+min2 = np.min(values[:,2])
+values[:,0] = (values[:,0])/max0
+values[:,1] = (values[:,1])/max1
+values[:,2] = (values[:,2])/max2
+
+n_samples = values.shape[0]
+t = torch.from_numpy(values[:,0].transpose()).reshape((265, 1)).float()
+#Tf0 = values[:,1]
+#Ts0 = values[:,2]
+T0 = torch.from_numpy(values[:,1:3]).float()
+batch_size = n_samples
+training_set = DataLoader(torch.utils.data.TensorDataset(t, T0), batch_size=batch_size, shuffle=True)
 
 
 class NeuralNet(nn.Module):
@@ -178,6 +206,28 @@ def run_configuration(conf_dict, x, y):
     relative_error_val = torch.mean((y_val_pred - y_val) ** 2) / torch.mean(y_val ** 2)
     print("Relative Validation Error: ", relative_error_val.detach().numpy() ** 0.5 * 100, "%")
 
+    fname = os.path.join("Task1/TestingData.txt")
+    test_data = np.loadtxt(fname, skiprows=1, delimiter=",")
+    test_data = test_data.reshape(test_data.shape[0],1)/max0
+    input_dim = test_data.shape[1]
+    output_dimension = 2
+    prediction = np.ndarray((test_data.shape[0], input_dim+output_dimension))
+    prediction[:,0:input_dim] = test_data
+    prediction = torch.from_numpy(prediction)
+    for i in np.arange(0,test_data.shape[0]):
+        prediction[i,input_dim:input_dim+output_dimension] = my_network(prediction[i,0:input_dim].float())
+    prediction = prediction.detach().numpy()
+
+    fname = os.path.join("Task1/SubTask1.txt")
+    print(prediction)
+    prediction[:,0] = prediction[:,0]*max0
+    prediction[:,1] = prediction[:,1]*max1
+    prediction[:,2] = prediction[:,2]*max2
+    figure = plt.figure()
+    plt.plot(prediction[:, 0], prediction[:, 1])
+    plt.plot(prediction[:, 0], prediction[:, 2])
+    plt.show()
+    np.savetxt(fname, prediction, header="t,tf0,ts0",delimiter=",")
 
     return relative_error_train.item(), relative_error_val.item()
 
@@ -186,54 +236,20 @@ def run_configuration(conf_dict, x, y):
 sampling_seed = 78
 torch.manual_seed(sampling_seed)
 
-fname = os.path.join("Task1/TrainingData.txt")
-values = np.loadtxt(fname, skiprows=1, delimiter=",")
-np.random.shuffle(values)
-mean0 = np.mean(values[:,0])
-mean1 = np.mean(values[:,1])
-mean2 = np.mean(values[:,2])
-max0 = np.max(values[:,0])
-max1 = np.max(values[:,1])
-max2 = np.max(values[:,2])
-min0 = np.min(values[:,0])
-min1 = np.min(values[:,1])
-min2 = np.min(values[:,2])
-values[:,0] = (values[:,0])/max0
-values[:,1] = (values[:,1])/max1
-values[:,2] = (values[:,2])/max2
 
-t = torch.from_numpy(values[:,0].transpose()).reshape((265, 1)).float()
-#Tf0 = values[:,1]
-#Ts0 = values[:,2]
-T0 = torch.from_numpy(values[:,1:3]).float()
-n_samples = t.shape[0]
-batch_size = n_samples
-training_set = DataLoader(torch.utils.data.TensorDataset(t, T0), batch_size=batch_size, shuffle=True)
-
-network_properties = {
-    "hidden_layers": [2, 4, 8],
-    "neurons": [5, 10, 20],
-    "regularization_exp": [2],
-    "regularization_param": [0, 1e-4],
-    "batch_size": [int(np.floor(n_samples/10)), int(np.floor(n_samples/2)), n_samples], #batch_size=1 to expensive
-    "epochs": [1000, 2500, 5000],
-    "optimizer": ["ADAM", "LBFGS"],
-    "init_weight_seed": [567, 34, 134],
-    "activation_function": ["Tanh", "ReLU", "Sigmoid"]
-}
-network_properties_debug = {
-    "hidden_layers": [1],
-    "neurons": [1],
+network_properties_final = {
+    "hidden_layers": [4],
+    "neurons": [20],
     "regularization_exp": [2],
     "regularization_param": [0],
     "batch_size": [n_samples],
-    "epochs": [10],
-    "optimizer": ["ADAM"],
-    "init_weight_seed": [567,122,231],
+    "epochs": [2500],
+    "optimizer": ["LBFGS"],
+    "init_weight_seed": [567],
     "activation_function": ["Tanh"]
 }
 
-settings = list(itertools.product(*network_properties.values()))
+settings = list(itertools.product(*network_properties_final.values()))
 
 i = 0
 
@@ -269,14 +285,3 @@ for i in sorted_indices:
     print(settings[i])
     print(val_err_conf[i]**0.5*100)
 
-
-#plt.figure(figsize=(16, 8))
-#plt.grid(True, which="both", ls=":")
-#plt.scatter(np.log10(train_err_conf), np.log10(test_err_conf), marker="*", label="Training Error")
-#plt.scatter(np.log10(val_err_conf), np.log10(test_err_conf), label="Validation Error")
-#plt.xlabel("Selection Criterion")
-#plt.ylabel("Generalization Error")
-#plt.title(r'Validation - Training Error VS Generalization error ($\sigma=0.0$)')
-#plt.legend()
-#plt.savefig("sigma.png", dpi=400)
-#plt.show()

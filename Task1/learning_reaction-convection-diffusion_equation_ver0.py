@@ -9,7 +9,7 @@ import os
 
 opt_type = "LBFGS"
 
-fname = os.path.join("Task1/TrainingData.txt")
+fname = os.path.join("TrainingData.txt")
 values = np.loadtxt(fname, skiprows=1, delimiter=",")
 
 
