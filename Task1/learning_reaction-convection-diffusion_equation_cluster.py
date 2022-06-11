@@ -8,8 +8,13 @@ from torch.utils.data import DataLoader
 import numpy as np
 import itertools
 import matplotlib.pyplot as plt
+import sys
+sys.path.insert(1, '..')
+from Common_mod import NeuralNet, fit, run_configuration
 from Common_mod import NeuralNet, fit, run_configuration
 from datetime import datetime
+
+torch.set_num_threads(72)
 
 now = datetime.now()
 dt_string = now.strftime("%d_%m_%Y-%H_%M_%S")
