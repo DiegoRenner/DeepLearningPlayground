@@ -201,9 +201,9 @@ def run_configuration(conf_dict, x, y):
 sampling_seed = 78
 torch.manual_seed(sampling_seed)
 
-fname = os.path.join("Task2/TrainingData_1601.txt")
+fname = os.path.join("TrainingData_1601.txt")
 values_data = np.loadtxt(fname, delimiter=" ")
-fname = os.path.join("Task2/samples_sobol.txt")
+fname = os.path.join("samples_sobol.txt")
 values_points = np.loadtxt(fname, delimiter=" ")
 
 #transformations_data = list()
@@ -216,6 +216,7 @@ values_points = np.loadtxt(fname, delimiter=" ")
 #    values_points[i,:] = (values_points[i,:])/np.max(values_points[i,:])
 #    transformations_points = (np.mean(values_points[i,:]), np.max(values_points[i,:]))
 y = torch.from_numpy(values_data[:,8]).reshape((values_data.shape[0],1)).float()
+print(y)
 #Tf0 = values[:,1]
 #Ts0 = values[:,2]
 x = torch.from_numpy(values_points[0:values_data.shape[0],:]).float()

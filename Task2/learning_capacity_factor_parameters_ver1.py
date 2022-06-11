@@ -7,9 +7,7 @@ import torch.utils.data
 from torch.utils.data import DataLoader
 import numpy as np
 import itertools
-# export OMP_NUM_THREADS=4
 
-torch.set_num_threads(8)
 class NeuralNet(nn.Module):
 
     def __init__(self, input_dimension, output_dimension, n_hidden_layers, neurons, regularization_param, regularization_exp, activation_function):
@@ -268,14 +266,3 @@ for i in sorted_indices:
     print(settings[i])
     print(val_err_conf[i]**0.5*100)
 
-
-#plt.figure(figsize=(16, 8))
-#plt.grid(True, which="both", ls=":")
-#plt.scatter(np.log10(train_err_conf), np.log10(test_err_conf), marker="*", label="Training Error")
-#plt.scatter(np.log10(val_err_conf), np.log10(test_err_conf), label="Validation Error")
-#plt.xlabel("Selection Criterion")
-#plt.ylabel("Generalization Error")
-#plt.title(r'Validation - Training Error VS Generalization error ($\sigma=0.0$)')
-#plt.legend()
-#plt.savefig("sigma.png", dpi=400)
-#plt.show()
