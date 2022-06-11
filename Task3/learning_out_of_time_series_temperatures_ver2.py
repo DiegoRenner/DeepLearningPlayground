@@ -18,8 +18,6 @@ max1 = np.max(values[:,1])
 max2 = np.max(values[:,2])
 values[:,1] = (values[:,1])/max1
 values[:,2] = (values[:,2])/max2
-#print(max(values[:,1]), max(values[:,2]))
-#print(values.shape)
 n_meas = values.shape[0]
 sample_size = 50
 n_samples = n_meas - sample_size
@@ -294,15 +292,3 @@ for i in sorted_indices:
     print("###################################", i, "###################################")
     print(settings[i])
     print(val_err_conf[i]**0.5*100)
-
-
-#plt.figure(figsize=(16, 8))
-#plt.grid(True, which="both", ls=":")
-#plt.scatter(np.log10(train_err_conf), np.log10(test_err_conf), marker="*", label="Training Error")
-#plt.scatter(np.log10(val_err_conf), np.log10(test_err_conf), label="Validation Error")
-#plt.xlabel("Selection Criterion")
-#plt.ylabel("Generalization Error")
-#plt.title(r'Validation - Training Error VS Generalization error ($\sigma=0.0$)')
-#plt.legend()
-#plt.savefig("sigma.png", dpi=400)
-#plt.show()
