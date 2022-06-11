@@ -87,8 +87,6 @@ for set_num, setup in enumerate(settings):
     train_err_conf.append(relative_error_train_)
     val_err_conf.append(relative_error_val_)
 
-print(train_err_conf, val_err_conf)
-
 train_err_conf = np.array(train_err_conf)
 val_err_conf = np.array(val_err_conf)
 sorted_indices = np.flip(np.argsort(val_err_conf))
@@ -110,8 +108,7 @@ for i in np.arange(0,test_data.shape[0]):
     prediction[i,input_dim:input_dim+output_dimension] = model(prediction[i,0:input_dim].float())
 prediction = prediction.detach().numpy()
 
-fname = os.path.join("SubTask1.txt")
-print(prediction)
+fname = os.path.join("SubTask1-"+dt_string+".txt")
 prediction[:,0] = prediction[:,0]*max0
 prediction[:,1] = prediction[:,1]*max1
 prediction[:,2] = prediction[:,2]*max2
