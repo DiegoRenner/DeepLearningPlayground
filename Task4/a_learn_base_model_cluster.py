@@ -13,7 +13,7 @@ sys.path.insert(1, '..')
 from Common_mod import NeuralNet, fit, run_configuration
 from datetime import datetime
 
-torch.set_num_threads(72)
+torch.set_num_threads(8)
 
 now = datetime.now()
 dt_string = now.strftime("%d_%m_%Y-%H_%M_%S")
@@ -35,10 +35,10 @@ network_properties = {
     "neurons": [5, 10, 20],
     "regularization_exp": [2],
     "regularization_param": [0, 4*1e-4, 1e-4],
-    "batch_size": [int(np.floor(n_samples/10)), int(np.floor(n_samples/2)), n_samples], #batch_size=1 to expensive
+    "batch_size": [n_samples], #batch_size=1 to expensive
     "epochs": [1000, 2500, 5000],
-    "optimizer": ["ADAM", "LBFGS"],
-    "init_weight_seed": [567, 34, 134],
+    "optimizer": ["LBFGS"],
+    "init_weight_seed": [567],
     "activation_function": ["Tanh", "ReLU", "Sigmoid"]
 }
 
