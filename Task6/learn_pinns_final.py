@@ -12,7 +12,8 @@ torch.set_num_threads(8)
 
 now = datetime.now()
 dt_string = now.strftime("%d_%m_%Y-%H_%M_%S")
-os.mkdir("run_" + dt_string)
+dirstr = "run_"+dt_string
+os.mkdir(dirstr)
 
 
 torch.autograd.set_detect_anomaly(True)
@@ -239,7 +240,7 @@ class Pinns:
                     return loss
 
                 optimizer.step(closure=closure)
-        fname = os.path.join("run_"+dt_string+"/config.txt")
+        fname = os.path.join(dirstr+"/config.txt")
         with open(fname, "a") as config:
             floss = float(history[-1])
             config.write("Final Loss: " + str(floss))
@@ -344,7 +345,7 @@ hist = pinn.fit(num_epochs=n_epochs,
                 verbose=True)
 pinn.plotting()
 
-torch.save(pinn.approximate_solution.state_dict(), "run_"+dt_string+"/model.pth")
+torch.save(pinn.approximate_solution.state_dict(), dirstr+"/model.pth")
 
 fname = os.path.join("TestingData.txt")
 output_dimension = 2
@@ -355,5 +356,5 @@ prediction[:,0:input_dim] = test_data
 prediction = torch.from_numpy(prediction)
 prediction[:,input_dim:input_dim+output_dimension] = pinn.approximate_solution(prediction[:,0:input_dim].float())
 prediction = prediction.detach().numpy()
-fname = os.path.join("run_" + dt_string+"/SubTask6.txt")
-np.savetxt(fname, prediction[:,input_dim], header="t,x,tf,ts")
+fname = os.path.join(dirstr+"/Task6.txt")
+np.savetxt(fname, prediction, header="t,x,tf,ts")
